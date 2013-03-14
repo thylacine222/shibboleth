@@ -25,10 +25,10 @@ analyzeText text = Analyzed {
                     }
     where
         lCaseWords = (lines $ 
-                        filter (isAlphaNum) $
+                        filter (isValidChar) $
                         map toLower text) >>= words
         wordList = (lines $ 
-                        filter (isAlphaNum) $ text) >> = words
+                        filter (isValidChar) $ text) >>= words
         wordSet = Set.fromList wordList
         isSep x = x `elem` ".?!"
         sentenceSep s = let (l, y:s') = break (isSep) s
@@ -37,8 +37,6 @@ analyzeText text = Analyzed {
                                         (_:s'') -> lines s''
         paragraphs = lines text
         sentences = paragraphs >>= sentenceSep
-                        
-        
-        
 
-                        
+isValidChar :: Char -> Bool
+isValidChar c = isAlphaNum c || c `elem` "\n "
