@@ -1,33 +1,26 @@
 --- Syntactic.hs
 --- Generate syntactic stylometric features
 
-module Syntactic where
+module Syntactic (genSentenceWordLength,
+                    genFunctionWordsFreq, genSentenceInitialWords) where
 
 import AnalyzedText
+import Features
 import Data.List (genericLength, elemIndices)
+import Data.Set (Set)
 import qualified Data.Set as Set
 
-generateSentenceWordLength :: AnalyzedText -> Set Feature
-generateSentenceWordLength text = Set.singleton $ AverageSentenceWordLength $
-                                  (sum lengths) / (length lengths)
+genSentenceWordLength :: AnalyzedText -> Set Feature
+genSentenceWordLength text = Set.singleton $ AverageSentenceWordLength $
+                                  div (sum lengths) (length lengths)
     where
         lengths =  map length $ map words $ sentences text
 
-generateBigrams :: AnalyzedText -> Set Feature
-generateBigrams text = Set.fromList $ map WordBigram 
-                        $ bigrams $ wordList text 
-    where
-        bigrams :: [String] -> [(String, String)]
-        bigrams [] = []
-        bigrams (x:xs)
-            | xs == [] = []
-            | otherwise = (x, head xs):(bigrams xs)
-
-generateFunctionWordsFreq :: AnalyzedText -> Set Feature
-generateFunctionWordsFreq t = Set.fromList $ map (\x -> FunctionWordsFreq x (ratio x))
+genFunctionWordsFreq :: AnalyzedText -> Set Feature
+genFunctionWordsFreq t = Set.fromList $ map (\x -> FunctionWordsFreq x (ratio x))
                                         fWords
     where
-        ratio w = (genericLength $ elemIndices w $ lCaseWords t)/
+        ratio w = round $ logBase 2 $ (genericLength $ elemIndices w $ lCaseWords t)/
                     (genericLength $ lCaseWords t)
         fWords = ["a","between","in","nor","some","upon","about","both",
                     "including","nothing","somebody","us","above","but",
@@ -53,9 +46,10 @@ generateFunctionWordsFreq t = Set.fromList $ map (\x -> FunctionWordsFreq x (rat
                     "unlike","yes","below","i","nobody","since","until",
                     "you","beside","if","none","so","up","your"]
                     
-generateSentenceInitialWords :: AnalyzedText -> Set Feature
-generateSentenceInitialWords t = Set.fromList $ 
+genSentenceInitialWords :: AnalyzedText -> Set Feature
+genSentenceInitialWords t = Set.fromList $ 
                                         map (SentenceInitial) $ 
-                                        map ((!!) 1) $ 
-                                        ((sentences t) >>= words)
+                                        map (flip (!!) 0) $
+                                        filter (not . null) $ 
+                                        map words $ sentences t
 

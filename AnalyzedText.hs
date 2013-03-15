@@ -1,8 +1,10 @@
 --- AnalyzedText.hs
 
-module AnalyzedText (AnalyzedText) where
+module AnalyzedText (AnalyzedText, analyzeText, lCaseWords, wordList, wordSet, text, sentences, paragraphs) where
 
+import Data.List.Split (splitWhen)
 import Data.Char (isAlphaNum, toLower)
+import Data.Set (Set)
 import qualified Data.Set as Set
     
 data AnalyzedText = Analyzed {
@@ -31,12 +33,8 @@ analyzeText text = Analyzed {
                         filter (isValidChar) $ text) >>= words
         wordSet = Set.fromList wordList
         isSep x = x `elem` ".?!"
-        sentenceSep s = let (l, y:s') = break (isSep) s
-                           in  l ++ [y] : case s' of
-                                        []      -> []
-                                        (_:s'') -> lines s''
         paragraphs = lines text
-        sentences = paragraphs >>= sentenceSep
+        sentences = paragraphs >>= splitWhen (isSep)
 
 isValidChar :: Char -> Bool
 isValidChar c = isAlphaNum c || c `elem` "\n "
